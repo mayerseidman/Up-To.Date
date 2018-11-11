@@ -80,6 +80,7 @@ class App extends Component {
                 .then(function(data) {
                     // console.log(playlist.name + " - ", (_.filter(data.tracks.items, function (x) { return moment(x.added_at) >= olderDate})).length)
                     var newTracks = _.filter(data.tracks.items, function (x) { return moment(x.added_at) >= olderDate });
+                    console.log(newTracks, playlist.name)
                     newSongsArray.push(newTracks)
                     }, function(err) {
                     console.error(err);
@@ -88,15 +89,15 @@ class App extends Component {
             setTimeout(() => {
                 var tracks = _.pluck(_.flatten(newSongsArray), "track")
                 var trackURIS = _.pluck(tracks, "uri")
-                console.log(trackURIS.length)
+                this.setState({ tracksToAdd: trackURIS })
                 this.addTracksToPlaylist(trackURIS)
             }, 1000))
     }
 
     addTracksToPlaylist(tracks) {
         console.log("HOO")
-        var sampleTracks = _.sample(tracks, 80);
-        spotifyApi.addTracksToPlaylist("7sFMWPIfW5UWBxUz6dIIAR", sampleTracks)
+        var sampleTracks = _.sample(tracks, 95);
+        spotifyApi.addTracksToPlaylist("1u2cBdyM9woTxRsKy1lGgk", sampleTracks)
           .then(function(data) {
             console.log('Added tracks to playlist!', data);
           }, function(err) {
@@ -120,7 +121,7 @@ class App extends Component {
   render() {
     if (this.state.loggedIn) {
         var button = (
-            <button onClick={() => this.getNowPlaying()}>CREATE THAT NEW PLAYLIST, BOY</button>     
+            <button onClick={() => this.getNowPlaying()}>Create that new playlist, WHITE BOY</button>     
         )
     }
     return (
