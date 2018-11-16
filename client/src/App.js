@@ -63,46 +63,49 @@ class App extends Component {
 
         var currentDate = moment();
         var olderDate = moment().subtract(30, "days");
-        
-
-        // var arr = [["$6"], ["$12"], ["$25"], ["$25"], ["$18"], ["$22"], ["$10"], ["$0"], ["$15"],["$3"], ["$75"], ["$5"], ["$100"], ["$7"], ["$3"], ["$75"], ["$5"]];
-        // arr = arr.reduce((a, b) => a.concat(b)); // flattened
-
-        // console.log(arr)
-        // console.log(currentDate == olderDate)
-        // console.log(currentDate.format("DD-MM-YYYY"))
-        // console.log(olderDate.format("DD-MM-YYYY"))
 
         var newSongsArray = []
 
         this.state.playlists.map(function(playlist) {
             spotifyApi.getPlaylist(playlist.id)
                 .then(function(data) {
-                    // console.log(playlist.name + " - ", (_.filter(data.tracks.items, function (x) { return moment(x.added_at) >= olderDate})).length)
                     var newTracks = _.filter(data.tracks.items, function (x) { return moment(x.added_at) >= olderDate });
-                    console.log(newTracks, playlist.name)
+                    // console.log(newTracks, playlist.name)
                     newSongsArray.push(newTracks)
                     }, function(err) {
                     console.error(err);
                 }.bind(this));    
         }.bind(this), 
-            setTimeout(() => {
-                var tracks = _.pluck(_.flatten(newSongsArray), "track")
-                var trackURIS = _.pluck(tracks, "uri")
-                this.setState({ tracksToAdd: trackURIS })
-                this.addTracksToPlaylist(trackURIS)
-            }, 1000))
+
+        setTimeout(() => {
+            var tracks = _.pluck(_.flatten(newSongsArray), "track")
+            var trackURIS = _.pluck(tracks, "uri")
+            console.log("FRESH TRACKS", tracks.length)
+            var loops = Math.ceil(tracks.length/99);
+
+            this.setState({ tracksToAdd: trackURIS })
+            for (var i = 0; i < loops; i++) {
+                console.log("OK adding" + i)
+
+                var batchedTracks = _.first(this.state.tracksToAdd, 99);
+                this.addTracksToPlaylist(batchedTracks)
+
+                var remainingTracks = _.difference(this.state.tracksToAdd, batchedTracks);
+                console.log(remainingTracks.length)
+                this.setState({ tracksToAdd: remainingTracks })
+            }
+        }, 1000))
     }
 
     addTracksToPlaylist(tracks) {
-        console.log("HOO")
-        var sampleTracks = _.sample(tracks, 95);
-        spotifyApi.addTracksToPlaylist("1u2cBdyM9woTxRsKy1lGgk", sampleTracks)
+        spotifyApi.addTracksToPlaylist("1u2cBdyM9woTxRsKy1lGgk", tracks)
           .then(function(data) {
             console.log('Added tracks to playlist!', data);
-          }, function(err) {
+          
+          }.bind(this), function(err) {
             console.log('Something went wrong!', err);
-          });
+          
+          }.bind(this));
     }
 
     getNowPlaying() {
